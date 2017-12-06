@@ -1,11 +1,8 @@
 package id.vincenttp.custommarkergooglemap;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -22,14 +19,11 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -56,10 +50,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         sydney = new LatLng(-3.0987418,119.8535123);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
-        setMarker();
+        loadMarker();
     }
 
-    private void setMarker(){
+    private void loadMarker(){
         final View view = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.layout_marker, null);
         final ImageView photo = view.findViewById(R.id.photo);
         Glide.with(getApplicationContext())
@@ -69,32 +63,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .listener(new RequestListener<Drawable>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                        setMarker(photo, null, view);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        photo.setImageDrawable(resource);
-
-                        DisplayMetrics displayMetrics = new DisplayMetrics();
-                        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-                        view.setLayoutParams(new FrameLayout.LayoutParams(42, 56));
-                        view.measure(displayMetrics.widthPixels, displayMetrics.heightPixels);
-                        view.layout(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
-                        view.buildDrawingCache();
-                        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-
-                        Canvas canvas = new Canvas(bitmap);
-                        view.draw(canvas);
-
-                        mMap.addMarker(new MarkerOptions()
-                                .title("vincenttp")
-                                .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                                .position(sydney)
-                        );
+                        setMarker(photo, resource, view);
                         return false;
                     }
                 })
                 .submit();
+    }
+
+    private void setMarker(ImageView photo, Drawable resource, View view){
+        if (resource!=null){
+            photo.setImageDrawable(resource);
+        }
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        view.setLayoutParams(new FrameLayout.LayoutParams(42, 56));
+        view.measure(displayMetrics.widthPixels, displayMetrics.heightPixels);
+        view.layout(0, 0, displayMetrics.widthPixels, displayMetrics.heightPixels);
+        view.buildDrawingCache();
+        Bitmap bitmap = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(bitmap);
+        view.draw(canvas);
+
+        mMap.addMarker(new MarkerOptions()
+                .title("vincenttp")
+                .icon(BitmapDescriptorFactory.fromBitmap(bitmap))
+                .position(sydney)
+        );
     }
 }
